@@ -16,7 +16,10 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.time.Duration;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Properties;
+import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @Component
@@ -51,7 +54,7 @@ public class KeyConsumer {
         taskExecutor.execute(() -> {
             while (true) {
                 records = consumer.poll(Duration.ofMillis(Integer.MAX_VALUE));
-                for(ConsumerRecord<Long, Key> record : records) {
+                for (ConsumerRecord<Long, Key> record : records) {
                     consumedRecords.add(record);
                     Thread.yield();
                 }
@@ -67,7 +70,7 @@ public class KeyConsumer {
 //
 //        ConsumerRecord<Long, String> record = iterator.next();
 
-        if(!consumedRecords.isEmpty()) {
+        if (!consumedRecords.isEmpty()) {
             ConsumerRecord<Long, Key> record = consumedRecords.remove();
             return record.value();
         } else {
@@ -93,7 +96,7 @@ public class KeyConsumer {
 
         ConsumerRecords<Long, Key> records = consumer.poll(100);
 
-        for(ConsumerRecord<Long, Key> record : records) {
+        for (ConsumerRecord<Long, Key> record : records) {
             consumedRecords.add(record);
             Thread.yield();
         }

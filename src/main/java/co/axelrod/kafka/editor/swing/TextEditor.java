@@ -48,7 +48,6 @@ public class TextEditor extends JFrame implements KeyListener {
         //Set up the content pane.
         this.addComponentsToPane();
 
-
         //Display the window.
         this.pack();
         this.setVisible(true);
@@ -138,17 +137,17 @@ public class TextEditor extends JFrame implements KeyListener {
             while (true) {
                 Key key = keyConsumer.getNextSymbol();
 
-                if(key == null) {
+                if (key == null) {
                     continue;
                 }
 
-                if(timestamp == null) {
+                if (timestamp == null) {
                     timestamp = Math.abs(key.getTimestamp());
                     displayInfo(String.valueOf(key.getKeyChar()));
                     continue;
                 }
 
-                if(key.getKeyChar() != '\n' && Math.abs(key.getTimestamp() - timestamp) < 3000) {
+                if (key.getKeyChar() != '\n' && Math.abs(key.getTimestamp() - timestamp) < 3000) {
                     try {
                         log.info("Printing next symbol " + key.getKeyChar() + " after " + (key.getTimestamp() - timestamp) + " ms");
                         Thread.sleep(Math.abs(key.getTimestamp() - timestamp));
@@ -253,10 +252,10 @@ public class TextEditor extends JFrame implements KeyListener {
     }
 
     private void displayInfo(String key) {
-        if("\b".equals(key)) {
+        if ("\b".equals(key)) {
             Document doc = displayArea.getDocument();
             try {
-                if(doc.getLength() > 1) {
+                if (doc.getLength() > 1) {
                     doc.remove(doc.getLength() - 1, 1);
                 }
             } catch (BadLocationException e) {
@@ -268,7 +267,7 @@ public class TextEditor extends JFrame implements KeyListener {
         }
     }
 
-        private static long getTimestamp() {
-            return System.currentTimeMillis();
-}
+    private static long getTimestamp() {
+        return System.currentTimeMillis();
+    }
 }
