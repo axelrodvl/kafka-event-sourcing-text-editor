@@ -6,6 +6,11 @@ Event sourcing persists the state of a business entity such an Order or a Custom
 
 In our case, we persist key presses as records in Kafka, which allows "replaying" of user commands, and by memory limited only undo/redo operations.
 
+### API:
+- Kafka Consumer
+- Kafka Producer
+- Serdes (Serializers/Deserializers)
+
 bin/kafka-topics.sh --create \                                                  
 --bootstrap-server localhost:9092 \
 --replication-factor 1 \

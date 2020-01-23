@@ -1,8 +1,8 @@
 package co.axelrod.kafka.editor.swing;
 
-import co.axelrod.kafka.editor.kafka.MyConsumer;
-import co.axelrod.kafka.editor.kafka.Sender;
-import co.axelrod.kafka.editor.model.Symbol;
+import co.axelrod.kafka.editor.kafka.KeyConsumer;
+import co.axelrod.kafka.editor.kafka.KeyProducer;
+import co.axelrod.kafka.editor.model.Key;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
@@ -17,9 +17,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 
 @Component
 @Slf4j
@@ -27,17 +24,16 @@ public class TextEditor extends JFrame implements KeyListener {
     Long timestamp = null;
 
     @Autowired
-    private Sender sender;
+    private KeyProducer keyProducer;
 
     @Autowired
-    private MyConsumer consumer;
+    private KeyConsumer keyConsumer;
 
     @Autowired
     private TaskExecutor taskExecutor;
 
     JTextArea displayArea;
     JTextField typingArea;
-    static final String newline = System.getProperty("line.separator");
 
     /**
      * Create the GUI and show it.  For thread safety,
@@ -59,7 +55,6 @@ public class TextEditor extends JFrame implements KeyListener {
     }
 
     private void addComponentsToPane() {
-
         JButton button = new JButton("Replay");
         button.addActionListener(new ActionListener() {
             @Override
@@ -71,16 +66,9 @@ public class TextEditor extends JFrame implements KeyListener {
                 //Return the focus to the typing area.
                 typingArea.requestFocusInWindow();
 
-//                for (ConsumerRecord<Long, String> record : ImmediateConsumer.getAllRecordsFromTopic()) {
-//                    displayInfo(record.value());
-////                    System.out.printf("topic = %s, partition = %s, offset = %d, customer = %s, country = %s\n",
-////                    record.topic(), record.partition(), record.offset(),
-////                    record.key(), record.value());
-//                }
-//                ImmediateConsumer.getAllRecordsFromTopic().forEach((record) -> displayInfo(record.value()));
-
+                //Loading all records from topic
                 timestamp = null;
-                consumer.getAllRecordsFromTopic();
+                keyConsumer.getAllRecordsFromTopic();
             }
         });
 
@@ -126,9 +114,6 @@ public class TextEditor extends JFrame implements KeyListener {
     public TextEditor() {
         /* Use an appropriate Look and Feel */
         try {
-            //UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-            //UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-            //UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (UnsupportedLookAndFeelException ex) {
             ex.printStackTrace();
@@ -144,52 +129,38 @@ public class TextEditor extends JFrame implements KeyListener {
 
         //Schedule a job for event dispatch thread:
         //creating and showing this application's GUI.
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                createAndShowGUI();
-            }
-        });
+        javax.swing.SwingUtilities.invokeLater(() -> createAndShowGUI());
     }
 
     @PostConstruct
     public void init() {
         taskExecutor.execute(() -> {
             while (true) {
-//                try {
-//                    Thread.sleep(100);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
+                Key key = keyConsumer.getNextSymbol();
 
-                if(!consumer.hasNextSymbol()) {
-                    continue;
-                }
-
-                Symbol symbol = consumer.getNextSymbol();
-
-                if(symbol == null) {
+                if(key == null) {
                     continue;
                 }
 
                 if(timestamp == null) {
-                    timestamp = Math.abs(symbol.timestamp);
-                    displayInfo(String.valueOf(symbol.symbol));
+                    timestamp = Math.abs(key.getTimestamp());
+                    displayInfo(String.valueOf(key.getKeyChar()));
                     continue;
                 }
 
-                if(symbol.symbol != '\n' && Math.abs(symbol.timestamp - timestamp) < 3000) {
+                if(key.getKeyChar() != '\n' && Math.abs(key.getTimestamp() - timestamp) < 3000) {
                     try {
-                        log.info("Printing next symbol " + symbol.symbol + " after " + (symbol.timestamp - timestamp) + " ms");
-                        Thread.sleep(Math.abs(symbol.timestamp - timestamp));
+                        log.info("Printing next symbol " + key.getKeyChar() + " after " + (key.getTimestamp() - timestamp) + " ms");
+                        Thread.sleep(Math.abs(key.getTimestamp() - timestamp));
                     } catch (InterruptedException ex) {
                         ex.printStackTrace();
                     }
                 }
 
-                timestamp = Math.abs(symbol.timestamp);
+                timestamp = Math.abs(key.getTimestamp());
 
                 //displayInfo(e, "KEY TYPED: ");
-                displayInfo(String.valueOf(symbol.symbol));
+                displayInfo(String.valueOf(key.getKeyChar()));
             }
         });
     }
@@ -198,44 +169,22 @@ public class TextEditor extends JFrame implements KeyListener {
      * Handle the key typed event from the text field.
      */
     public void keyTyped(KeyEvent e) {
-        //byte[] arr = serializeKeyEvent(e);
-        sender.send("", getTimestamp(), e.getKeyChar());
+        keyProducer.send("", getTimestamp(), new Key(e));
         Thread.yield();
-    }
-
-    private byte[] serializeKeyEvent(KeyEvent keyEvent) {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream out = null;
-        try {
-            out = new ObjectOutputStream(bos);
-            out.writeObject(keyEvent);
-            out.flush();
-            return bos.toByteArray();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                bos.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                // Ignoring
-            }
-        }
-        throw new RuntimeException("Unable to serialize key event");
     }
 
     /**
      * Handle the key pressed event from the text field.
      */
     public void keyPressed(KeyEvent e) {
-        //displayInfo(e, "KEY PRESSED: ");
+        // Doing nothing
     }
 
     /**
      * Handle the key released event from the text field.
      */
     public void keyReleased(KeyEvent e) {
-        //displayInfo(e, "KEY RELEASED: ");
+        // Doing nothing
     }
 
     /*

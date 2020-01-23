@@ -1,6 +1,6 @@
 package co.axelrod.kafka.editor.kafka;
 
-import co.axelrod.kafka.editor.model.Symbol;
+import co.axelrod.kafka.editor.model.Key;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -21,17 +21,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 @Component
 @Slf4j
-public class MyConsumer {
-    private long offset = 0;
-
-    private KafkaConsumer<Long, String> consumer;
+public class KeyConsumer {
+    private KafkaConsumer<Long, Key> consumer;
 
     @Getter
-    private ConsumerRecords<Long, String> records;
+    private ConsumerRecords<Long, Key> records;
 
-    private Queue<ConsumerRecord<Long, String>> consumedRecords = new LinkedBlockingQueue<>();
-
-    private Iterator<ConsumerRecord<Long, String>> iterator;
+    private Queue<ConsumerRecord<Long, Key>> consumedRecords = new LinkedBlockingQueue<>();
 
     @Autowired
     private TaskExecutor taskExecutor;
@@ -47,7 +43,7 @@ public class MyConsumer {
         props.setProperty("enable.auto.commit", "true");
         props.setProperty("auto.commit.interval.ms", "1000");
         props.setProperty("key.deserializer", "org.apache.kafka.common.serialization.LongDeserializer");
-        props.setProperty("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.setProperty("value.deserializer", co.axelrod.kafka.editor.model.serdes.KeyKafkaDeserializer.class.getName());
 
         consumer = new KafkaConsumer<>(props);
         consumer.subscribe(Arrays.asList("bad-git"));
@@ -55,7 +51,7 @@ public class MyConsumer {
         taskExecutor.execute(() -> {
             while (true) {
                 records = consumer.poll(Duration.ofMillis(Integer.MAX_VALUE));
-                for(ConsumerRecord<Long, String> record : records) {
+                for(ConsumerRecord<Long, Key> record : records) {
                     consumedRecords.add(record);
                     Thread.yield();
                 }
@@ -64,18 +60,7 @@ public class MyConsumer {
     }
 
     @Async
-    public boolean hasNextSymbol() {
-        return true;
-//
-//        if (iterator == null) {
-//            iterator = consumedRecords.iterator();
-//        }
-//
-//        return iterator.hasNext();
-    }
-
-    @Async
-    public Symbol getNextSymbol() {
+    public Key getNextSymbol() {
 //        if (iterator == null) {
 //            iterator = consumedRecords.iterator();
 //        }
@@ -83,8 +68,8 @@ public class MyConsumer {
 //        ConsumerRecord<Long, String> record = iterator.next();
 
         if(!consumedRecords.isEmpty()) {
-            ConsumerRecord<Long, String> record = consumedRecords.remove();
-            return new Symbol(record.key(), record.value().charAt(0));
+            ConsumerRecord<Long, Key> record = consumedRecords.remove();
+            return record.value();
         } else {
             return null;
         }
@@ -100,15 +85,15 @@ public class MyConsumer {
         //props.setProperty("enable.auto.commit", "true");
         //props.setProperty("auto.commit.interval.ms", "1000");
         props.setProperty("key.deserializer", "org.apache.kafka.common.serialization.LongDeserializer");
-        props.setProperty("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        props.setProperty("value.deserializer", co.axelrod.kafka.editor.model.serdes.KeyKafkaDeserializer.class.getName());
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
-        KafkaConsumer<Long, String> consumer = new KafkaConsumer<>(props);
+        KafkaConsumer<Long, Key> consumer = new KafkaConsumer<>(props);
         consumer.subscribe(Arrays.asList("bad-git"));
 
-        ConsumerRecords<Long, String> records = consumer.poll(100);
+        ConsumerRecords<Long, Key> records = consumer.poll(100);
 
-        for(ConsumerRecord<Long, String> record : records) {
+        for(ConsumerRecord<Long, Key> record : records) {
             consumedRecords.add(record);
             Thread.yield();
         }
