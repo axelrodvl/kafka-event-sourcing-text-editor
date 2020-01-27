@@ -7,36 +7,35 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.util.Properties;
 
 @Component
-public class KeyProducer {
+public class KeyProducer implements InitializingBean, DisposableBean {
+    private final Properties properties = new Properties();
+
     private Producer<String, Key> producer;
 
-    @Autowired
-    private KafkaProperties kafkaProperties;
-
-    @PostConstruct
-    public void init() {
-        Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KeyKafkaSerializer.class.getName());
-
-        producer = new KafkaProducer<>(props);
+    public KeyProducer(KafkaProperties kafkaProperties) {
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KeyKafkaSerializer.class.getName());
     }
 
-    public void send(String fileName, long timestamp, Key key) {
-        producer.send(new ProducerRecord<>("bad-git", "bad-git", key));
+    @Override
+    public void afterPropertiesSet() {
+        producer = new KafkaProducer<>(properties);
     }
 
-    @PreDestroy
-    public void close() {
+    public void send(String fileName, Key key) {
+        producer.send(new ProducerRecord<>(fileName, "key", key));
+    }
+
+    @Override
+    public void destroy() {
         producer.close();
     }
 }

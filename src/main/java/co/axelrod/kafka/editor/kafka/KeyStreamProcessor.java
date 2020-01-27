@@ -21,9 +21,6 @@ public class KeyStreamProcessor {
     private int keyCount = 0;
 
     @Autowired
-    private TaskExecutor taskExecutor;
-
-    @Autowired
     private KafkaProperties kafkaProperties;
 
     @PostConstruct

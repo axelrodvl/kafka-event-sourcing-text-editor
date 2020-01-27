@@ -3,9 +3,11 @@ package co.axelrod.kafka.editor.swing;
 import co.axelrod.kafka.editor.kafka.KeyConsumer;
 import co.axelrod.kafka.editor.kafka.KeyProducer;
 import co.axelrod.kafka.editor.kafka.KeyStreamProcessor;
+import co.axelrod.kafka.editor.model.Context;
 import co.axelrod.kafka.editor.model.Key;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +27,9 @@ public class TextEditor extends JFrame implements KeyListener {
     Long timestamp = null;
 
     @Autowired
+    private ApplicationContext applicationContext;
+
+    @Autowired
     private KeyProducer keyProducer;
 
     @Autowired
@@ -39,6 +44,11 @@ public class TextEditor extends JFrame implements KeyListener {
     JTextArea displayArea;
     JTextField typingArea;
     JLabel symbols;
+
+    private String fileName;
+
+    @Autowired
+    private Context context;
 
     /**
      * Create the GUI and show it.  For thread safety,
@@ -71,7 +81,7 @@ public class TextEditor extends JFrame implements KeyListener {
 
                 //Loading all records from topic
                 timestamp = null;
-                keyConsumer.getAllRecordsFromTopic();
+                keyConsumer.getAllRecordsFromTopic(context.getFileName());
             }
         });
 
@@ -91,6 +101,15 @@ public class TextEditor extends JFrame implements KeyListener {
             }
         });
 
+        JTextField fileNameField = new JTextField(20);
+        JButton changeFileButton = new JButton("Change file");
+        changeFileButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                context.changeFileName(fileNameField.getText());
+            }
+        });
+
         typingArea = new JTextField(20);
         typingArea.addKeyListener(this);
 
@@ -98,6 +117,8 @@ public class TextEditor extends JFrame implements KeyListener {
         topLayout.setAlignment(FlowLayout.TRAILING);
         final JPanel topPanel = new JPanel();
         topPanel.setLayout(topLayout);
+        topPanel.add(fileNameField);
+        topPanel.add(changeFileButton);
         topPanel.add(typingArea);
         topPanel.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
         getContentPane().add(topPanel, BorderLayout.PAGE_START);
@@ -168,14 +189,14 @@ public class TextEditor extends JFrame implements KeyListener {
                     continue;
                 }
 
-                if (key.getKeyChar() != '\n' && Math.abs(key.getTimestamp() - timestamp) < 3000) {
-                    try {
-                        log.info("Printing next symbol " + key.getKeyChar() + " after " + (key.getTimestamp() - timestamp) + " ms");
-                        Thread.sleep(Math.abs(key.getTimestamp() - timestamp));
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
-                    }
-                }
+//                if (key.getKeyChar() != '\n' && Math.abs(key.getTimestamp() - timestamp) < 3000) {
+//                    try {
+//                        log.info("Printing next symbol " + key.getKeyChar() + " after " + (key.getTimestamp() - timestamp) + " ms");
+////                        Thread.sleep(Math.abs(key.getTimestamp() - timestamp));
+//                    } catch (InterruptedException ex) {
+//                        ex.printStackTrace();
+//                    }
+//                }
 
                 timestamp = Math.abs(key.getTimestamp());
 
@@ -191,7 +212,7 @@ public class TextEditor extends JFrame implements KeyListener {
      * Handle the key typed event from the text field.
      */
     public void keyTyped(KeyEvent e) {
-        keyProducer.send("", getTimestamp(), new Key(e));
+        keyProducer.send(context.getFileName(), new Key(e));
         Thread.yield();
     }
 
@@ -288,9 +309,5 @@ public class TextEditor extends JFrame implements KeyListener {
             displayArea.append(key);
             displayArea.setCaretPosition(displayArea.getDocument().getLength());
         }
-    }
-
-    private static long getTimestamp() {
-        return System.currentTimeMillis();
     }
 }
