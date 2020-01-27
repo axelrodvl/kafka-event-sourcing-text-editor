@@ -34,7 +34,7 @@
 //        KTable<String, Long> wordCounts = textLines
 //                .flatMapValues(textLine -> Arrays.asList(textLine.toLowerCase().split("\\W+")))
 //                .groupBy((key, word) -> word)
-//                .count(Materialized.<String, Long, KeyValueStore<Bytes, byte[]>>as("counts-store"));
+//                .count(Materialized.<String, String, KeyValueStore<Bytes, byte[]>>as("counts-store"));
 //        wordCounts.toStream().to("WordsWithCountsTopic", Produced.with(Serdes.String(), Serdes.Long()));
 //
 //        KafkaStreams streams = new KafkaStreams(builder.build(), props);

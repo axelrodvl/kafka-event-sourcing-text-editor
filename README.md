@@ -11,6 +11,10 @@ In our case, we persist key presses as records in Kafka, which allows "replaying
 - Kafka Producer
 - Serdes (Serializers/Deserializers)
 
+Kafka Streams:
+- Create words from letters
+- Count words count
+
 bin/kafka-topics.sh --create \                                                  
 --bootstrap-server localhost:9092 \
 --replication-factor 1 \
@@ -26,3 +30,6 @@ bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic bad-git
 bin/kafka-topics.sh --bootstrap-server localhost:9092 --describe | grep bad-git
 
 bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic bad-git
+
+
+bin/kafka-topics.sh --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic bad-git-letters

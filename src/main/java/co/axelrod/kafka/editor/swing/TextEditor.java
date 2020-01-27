@@ -2,6 +2,7 @@ package co.axelrod.kafka.editor.swing;
 
 import co.axelrod.kafka.editor.kafka.KeyConsumer;
 import co.axelrod.kafka.editor.kafka.KeyProducer;
+import co.axelrod.kafka.editor.kafka.KeyStreamProcessor;
 import co.axelrod.kafka.editor.model.Key;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +31,14 @@ public class TextEditor extends JFrame implements KeyListener {
     private KeyConsumer keyConsumer;
 
     @Autowired
+    private KeyStreamProcessor keyStreamProcessor;
+
+    @Autowired
     private TaskExecutor taskExecutor;
 
     JTextArea displayArea;
     JTextField typingArea;
+    JLabel symbols;
 
     /**
      * Create the GUI and show it.  For thread safety,
@@ -42,7 +47,6 @@ public class TextEditor extends JFrame implements KeyListener {
      */
     private void createAndShowGUI() {
         //Create and set up the window.
-
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //Set up the content pane.
@@ -54,8 +58,8 @@ public class TextEditor extends JFrame implements KeyListener {
     }
 
     private void addComponentsToPane() {
-        JButton button = new JButton("Replay");
-        button.addActionListener(new ActionListener() {
+        JButton replay = new JButton("Replay");
+        replay.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 //Clear the text components.
@@ -90,6 +94,14 @@ public class TextEditor extends JFrame implements KeyListener {
         typingArea = new JTextField(20);
         typingArea.addKeyListener(this);
 
+        FlowLayout topLayout = new FlowLayout();
+        topLayout.setAlignment(FlowLayout.TRAILING);
+        final JPanel topPanel = new JPanel();
+        topPanel.setLayout(topLayout);
+        topPanel.add(typingArea);
+        topPanel.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+        getContentPane().add(topPanel, BorderLayout.PAGE_START);
+
         //Uncomment this if you wish to turn off focus
         //traversal.  The focus subsystem consumes
         //focus traversal keys, such as Tab and Shift Tab.
@@ -98,16 +110,25 @@ public class TextEditor extends JFrame implements KeyListener {
         //become available to the key event listener.
         //typingArea.setFocusTraversalKeysEnabled(false);
 
+        symbols = new JLabel();
+        symbols.setText("Wow!");
+
         displayArea = new JTextArea();
         displayArea.setEditable(true);
         JScrollPane scrollPane = new JScrollPane(displayArea);
         scrollPane.setPreferredSize(new Dimension(375, 125));
-
-        getContentPane().add(typingArea, BorderLayout.PAGE_START);
         getContentPane().add(scrollPane, BorderLayout.CENTER);
-        getContentPane().add(button, BorderLayout.PAGE_END);
-        //getContentPane().add(undo, BorderLayout.AFTER_LAST_LINE);
-        //getContentPane().add(redo, BorderLayout.PAGE_END);
+
+        FlowLayout borderLayout = new FlowLayout();
+        borderLayout.setAlignment(FlowLayout.TRAILING);
+        final JPanel borderPanel = new JPanel();
+        borderPanel.setLayout(borderLayout);
+        borderPanel.add(symbols);
+        borderPanel.add(undo);
+        borderPanel.add(redo);
+        borderPanel.add(replay);
+        borderPanel.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+        getContentPane().add(borderPanel, BorderLayout.PAGE_END);
     }
 
     public TextEditor() {
@@ -160,6 +181,8 @@ public class TextEditor extends JFrame implements KeyListener {
 
                 //displayInfo(e, "KEY TYPED: ");
                 displayInfo(String.valueOf(key.getKeyChar()));
+
+                symbols.setText(String.valueOf(keyStreamProcessor.getKeyCount()));
             }
         });
     }
