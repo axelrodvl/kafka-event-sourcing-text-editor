@@ -23,6 +23,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Component
 @Slf4j
 public class KeyConsumer implements DisposableBean {
+    private final Properties properties = new Properties();
+
     private KafkaConsumer<String, Key> consumer;
 
     @Getter
@@ -35,39 +37,50 @@ public class KeyConsumer implements DisposableBean {
 
     private ConsumerTask consumerTask;
 
-    public void start(String fileName) {
-        Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
-        props.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KeyKafkaDeserializer.class.getName());
+    private Thread consumerThread;
 
-        consumer = new KafkaConsumer<>(props);
+    public KeyConsumer() {
+        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
+        properties.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
+        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
+        properties.put(ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "1000");
+        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KeyKafkaDeserializer.class.getName());
+        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    }
+
+    public void start(String fileName) {
+        consumer = new KafkaConsumer<>(properties);
         consumer.subscribe(Arrays.asList(fileName));
 
         consumerTask = new ConsumerTask();
-        new Thread(consumerTask).start();
+        consumerThread = new Thread(consumerTask);
+        consumerThread.start();
     }
 
     private class ConsumerTask implements Runnable {
-        public Boolean running = true;
+        private volatile boolean running = true;
 
         @Override
         public void run() {
             while (running) {
-                records = consumer.poll(Duration.ofMillis(Integer.MAX_VALUE));
+                records = consumer.poll(Duration.ofMillis(100));
                 for (ConsumerRecord<String, Key> record : records) {
-                    consumedRecords.add(record);
                     if (!running) {
                         break;
                     }
-                    Thread.yield();
+                    consumedRecords.add(record);
                 }
             }
+            log.info("Consumer thread is ending");
+            log.info("Committing consumer offset");
+            consumer.commitSync();
+            log.info("Closing consumer");
             consumer.close();
-            consumedRecords.clear();
+        }
+
+        public void terminate() {
+            running = false;
         }
     }
 
@@ -80,30 +93,18 @@ public class KeyConsumer implements DisposableBean {
         }
     }
 
-    public void getAllRecordsFromTopic(String fileName) {
-        Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KeyKafkaDeserializer.class.getName());
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-
-        KafkaConsumer<String, Key> consumer = new KafkaConsumer<>(props);
-        consumer.subscribe(Arrays.asList(fileName));
-
-        ConsumerRecords<String, Key> records = consumer.poll(100);
-
-        for (ConsumerRecord<String, Key> record : records) {
-            consumedRecords.add(record);
-            Thread.yield();
-        }
-
-        consumer.close();
-    }
-
     @Override
     public void destroy() {
-        consumerTask.running = false;
+        if (consumerTask != null) {
+            consumerTask.terminate();
+            try {
+                consumerThread.join();
+            } catch (InterruptedException e) {
+                log.error("Consumer thread interrupted");
+                e.printStackTrace();
+            }
+            consumedRecords.clear();
+        }
     }
 
     public void undo() {

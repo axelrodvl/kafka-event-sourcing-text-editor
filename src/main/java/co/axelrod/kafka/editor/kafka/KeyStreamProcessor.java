@@ -17,23 +17,37 @@ import java.util.Properties;
 
 @Component
 public class KeyStreamProcessor {
+    private final Properties properties = new Properties();
+
+    private static final String LETTERS_POSTFIX = "-letters";
+
     @Getter
     private int keyCount = 0;
 
     @Autowired
     private KafkaProperties kafkaProperties;
 
+    @Autowired
+    private FileManager fileManager;
+
     private KafkaStreams streams;
 
-    public void start(String fileName) {
-        Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, kafkaProperties.getApplicationId());
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
+    public KeyStreamProcessor() {
+        properties.put(StreamsConfig.APPLICATION_ID_CONFIG, kafkaProperties.getApplicationId());
+        properties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
+    }
 
-        StreamsBuilder builder = new StreamsBuilder();
-        KStream<String, Key> originalStream = builder.stream("bad-git", Consumed.with(Serdes.String(), new KeyKafkaSerde()));
+    private final StreamsBuilder builder = new StreamsBuilder();
+
+    public void start(String fileName) {
+        KStream<String, Key> originalStream = builder.stream(fileName, Consumed.with(Serdes.String(), new KeyKafkaSerde()));
+
+        //keyCount = originalStream.groupByKey().count().toStream();
+
         KStream<String, String> letterStream = originalStream.mapValues((key) -> String.valueOf(key.getKeyChar()));
-        letterStream.to("bad-git-letters", Produced.with(Serdes.String(), Serdes.String()));
+
+        fileManager.createFile(fileName + LETTERS_POSTFIX);
+        letterStream.to(fileName + LETTERS_POSTFIX, Produced.with(Serdes.String(), Serdes.String()));
 
 //        KStream<Long, String> wordStream = builder.stream("bad-git-letters", Consumed.with(Serdes.Long(), Serdes.String())).groupByKey().reduce(((value1, value2) -> {
 //            System.out.println(value1);
@@ -70,7 +84,7 @@ public class KeyStreamProcessor {
 //                .count(Materialized.<String, Key, KeyValueStore<Bytes, byte[]>>as("counts-store"));
 //        wordCounts.toStream().to("WordsWithCountsTopic", Produced.with(Serdes.String(), Serdes.Long()));
 
-        streams = new KafkaStreams(builder.build(), props);
+        streams = new KafkaStreams(builder.build(), properties);
         streams.cleanUp();
         streams.start();
 
@@ -78,6 +92,8 @@ public class KeyStreamProcessor {
     }
 
     public void destroy() {
-        streams.close();
+        if (streams != null) {
+            streams.close();
+        }
     }
 }

@@ -48,27 +48,23 @@ public class TextEditor {
     }
 
     public void changeFileName() {
-        keyConsumer.destroy();
-        keyStreamProcessor.destroy();
         this.fileName = fileNameField.getText();
         newFile();
     }
 
-    private void newFile() {
+    public void newFile() {
+        keyConsumer.destroy();
+        keyStreamProcessor.destroy();
+
         fileNameField.setText(fileName);
         mainFrame.updateTitle(fileName);
         fileManager.createFile(fileName);
 
         keyConsumer.start(fileName);
         keyStreamProcessor.start(fileName);
-        replay();
     }
 
     public void type(Key key) {
         keyProducer.send(fileName, key);
-    }
-
-    public void replay() {
-        keyConsumer.getAllRecordsFromTopic(fileName);
     }
 }

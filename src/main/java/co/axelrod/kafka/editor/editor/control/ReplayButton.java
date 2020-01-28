@@ -15,7 +15,7 @@ public class ReplayButton extends JButton {
         this.addActionListener(e -> {
             textArea.setText("");
             textArea.requestFocusInWindow();
-            textEditor.replay();
+            textEditor.newFile();
         });
     }
 }
