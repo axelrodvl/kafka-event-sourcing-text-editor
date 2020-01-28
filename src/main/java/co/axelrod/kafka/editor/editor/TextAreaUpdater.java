@@ -1,5 +1,6 @@
 package co.axelrod.kafka.editor.editor;
 
+import co.axelrod.kafka.editor.editor.text.DisplayArea;
 import co.axelrod.kafka.editor.kafka.KeyConsumer;
 import co.axelrod.kafka.editor.model.Key;
 import org.springframework.stereotype.Component;

@@ -104,7 +104,9 @@ public class KeyConsumer implements DisposableBean {
     @Override
     public void destroy() {
         consumerTask.running = false;
-//        executorService.shutdown();
-//        executorService.awaitTermination(1, TimeUnit.SECONDS);
+    }
+
+    public void undo() {
+        consumedRecords.remove(); // TODO
     }
 }

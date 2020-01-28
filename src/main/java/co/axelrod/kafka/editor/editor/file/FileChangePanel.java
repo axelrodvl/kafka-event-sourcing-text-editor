@@ -11,8 +11,7 @@ import java.awt.*;
 public class FileChangePanel extends JPanel {
     public FileChangePanel(
             @Qualifier("changeFile") JButton changeFileButton,
-            @Qualifier("fileName") JTextField fileNameField,
-            JTextField typingArea) {
+            @Qualifier("fileName") JTextField fileNameField) {
         super();
         FlowLayout topLayout = new FlowLayout();
         topLayout.setAlignment(FlowLayout.TRAILING);
@@ -23,7 +22,6 @@ public class FileChangePanel extends JPanel {
         this.add(fileNameLabel);
         this.add(fileNameField);
         this.add(changeFileButton);
-        this.add(typingArea);
         this.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
     }
 }

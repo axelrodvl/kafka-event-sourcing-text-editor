@@ -1,4 +1,4 @@
-package co.axelrod.kafka.editor.editor;
+package co.axelrod.kafka.editor.editor.text;
 
 import co.axelrod.kafka.editor.TextEditor;
 import co.axelrod.kafka.editor.model.Key;

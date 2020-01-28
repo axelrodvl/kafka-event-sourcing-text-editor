@@ -1,5 +1,6 @@
 package co.axelrod.kafka.editor;
 
+import co.axelrod.kafka.editor.editor.MainFrame;
 import co.axelrod.kafka.editor.editor.file.FileNameField;
 import co.axelrod.kafka.editor.kafka.FileManager;
 import co.axelrod.kafka.editor.kafka.KeyConsumer;
@@ -19,6 +20,9 @@ public class TextEditor {
     private String fileName;
 
     @Autowired
+    private MainFrame mainFrame;
+
+    @Autowired
     private KeyConsumer keyConsumer;
 
     @Autowired
@@ -36,6 +40,7 @@ public class TextEditor {
     @PostConstruct
     public void init() {
         this.fileName = DEFAULT_FILE_NAME;
+        mainFrame.updateTitle(fileName);
         keyConsumer.start(fileName);
         fileNameField.setText(fileName);
     }
@@ -43,6 +48,7 @@ public class TextEditor {
     public void changeFileName() {
         keyConsumer.destroy();
         this.fileName = fileNameField.getText();
+        mainFrame.updateTitle(fileName);
         fileManager.createFile(fileName);
         keyConsumer.start(fileName);
     }
