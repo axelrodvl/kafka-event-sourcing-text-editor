@@ -1,6 +1,8 @@
-package co.axelrod.kafka.editor.editor;
+package co.axelrod.kafka.editor.editor.control;
 
 import co.axelrod.kafka.editor.TextEditor;
+import co.axelrod.kafka.editor.editor.DisplayArea;
+import co.axelrod.kafka.editor.editor.TypingArea;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 

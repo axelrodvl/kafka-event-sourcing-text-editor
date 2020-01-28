@@ -1,6 +1,6 @@
 package co.axelrod.kafka.editor;
 
-import co.axelrod.kafka.editor.editor.TextEditorWindow;
+import co.axelrod.kafka.editor.editor.file.FileNameField;
 import co.axelrod.kafka.editor.kafka.FileManager;
 import co.axelrod.kafka.editor.kafka.KeyConsumer;
 import co.axelrod.kafka.editor.kafka.KeyProducer;
@@ -10,17 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.swing.*;
 
 @Component
 public class TextEditor {
     private static final String DEFAULT_FILE_NAME = "bad-git";
 
-    @Autowired
-    private TextEditorWindow window;
-
-    private JTextArea displayArea;
-    private JTextField typingArea;
+    // We store file in Kafka topic
+    private String fileName;
 
     @Autowired
     private KeyConsumer keyConsumer;
@@ -34,20 +30,19 @@ public class TextEditor {
     @Autowired
     private FileManager fileManager;
 
+    @Autowired
+    private FileNameField fileNameField;
+
     @PostConstruct
     public void init() {
         this.fileName = DEFAULT_FILE_NAME;
-        //window.init();
         keyConsumer.start(fileName);
-
+        fileNameField.setText(fileName);
     }
-
-    // We store file in Kafka topic
-    private String fileName;
 
     public void changeFileName() {
         keyConsumer.destroy();
-        this.fileName = window.fileNameField.getText();
+        this.fileName = fileNameField.getText();
         fileManager.createFile(fileName);
         keyConsumer.start(fileName);
     }

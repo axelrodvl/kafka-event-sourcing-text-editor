@@ -18,8 +18,6 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @Component
@@ -37,8 +35,6 @@ public class KeyConsumer implements DisposableBean {
 
     private ConsumerTask consumerTask;
 
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
-
     public void start(String fileName) {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
@@ -52,8 +48,7 @@ public class KeyConsumer implements DisposableBean {
         consumer.subscribe(Arrays.asList(fileName));
 
         consumerTask = new ConsumerTask();
-
-        executorService.execute(consumerTask);
+        new Thread(consumerTask).start();
     }
 
     private class ConsumerTask implements Runnable {
@@ -71,6 +66,8 @@ public class KeyConsumer implements DisposableBean {
                     Thread.yield();
                 }
             }
+            consumer.close();
+            consumedRecords.clear();
         }
     }
 
@@ -107,7 +104,7 @@ public class KeyConsumer implements DisposableBean {
     @Override
     public void destroy() {
         consumerTask.running = false;
-        consumer.close(Duration.ofSeconds(1));
-        executorService.shutdown();
+//        executorService.shutdown();
+//        executorService.awaitTermination(1, TimeUnit.SECONDS);
     }
 }

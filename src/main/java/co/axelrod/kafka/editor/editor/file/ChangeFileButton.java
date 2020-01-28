@@ -1,4 +1,4 @@
-package co.axelrod.kafka.editor.editor;
+package co.axelrod.kafka.editor.editor.file;
 
 import co.axelrod.kafka.editor.TextEditor;
 import org.springframework.beans.factory.annotation.Qualifier;
