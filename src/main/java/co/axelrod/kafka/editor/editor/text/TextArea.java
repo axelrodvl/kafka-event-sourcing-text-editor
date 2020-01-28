@@ -11,8 +11,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 @Component
-public class DisplayArea extends JTextArea {
-    public DisplayArea(TextEditor textEditor) {
+public class TextArea extends JTextArea {
+    public TextArea(TextEditor textEditor) {
         super();
         this.setEditable(true);
         this.addKeyListener(new KeyListener() {

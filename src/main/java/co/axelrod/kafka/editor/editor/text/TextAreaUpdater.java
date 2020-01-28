@@ -1,23 +1,21 @@
-package co.axelrod.kafka.editor.editor;
+package co.axelrod.kafka.editor.editor.text;
 
-import co.axelrod.kafka.editor.editor.text.DisplayArea;
 import co.axelrod.kafka.editor.kafka.KeyConsumer;
 import co.axelrod.kafka.editor.model.Key;
 import org.springframework.stereotype.Component;
 
 @Component
 public class TextAreaUpdater {
-    public TextAreaUpdater(KeyConsumer keyConsumer, DisplayArea displayArea) {
+    public TextAreaUpdater(KeyConsumer keyConsumer, TextArea textArea) {
         new Thread(() -> {
             while (true) {
                 Key key = keyConsumer.getNextSymbol();
-
                 if (key == null) {
                     continue;
                 }
-
-                displayArea.display(String.valueOf(key.getKeyChar()));
-//            textEditorWindow.symbols.setText("String.valueOf(keyStreamProcessor.getKeyCount()");
+                if (!textArea.isFocusOwner()) {
+                    textArea.display(String.valueOf(key.getKeyChar()));
+                }
             }
         }).start();
     }

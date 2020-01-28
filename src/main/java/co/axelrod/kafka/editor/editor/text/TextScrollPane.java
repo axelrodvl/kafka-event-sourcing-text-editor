@@ -6,7 +6,7 @@ import javax.swing.*;
 
 @Component
 public class TextScrollPane extends JScrollPane {
-    public TextScrollPane(DisplayArea displayArea) {
-        super(displayArea);
+    public TextScrollPane(TextArea textArea) {
+        super(textArea);
     }
 }

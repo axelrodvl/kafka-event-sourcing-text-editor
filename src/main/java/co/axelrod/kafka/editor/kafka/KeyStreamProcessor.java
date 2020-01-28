@@ -13,7 +13,6 @@ import org.apache.kafka.streams.kstream.Produced;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.Properties;
 
 @Component
@@ -24,17 +23,12 @@ public class KeyStreamProcessor {
     @Autowired
     private KafkaProperties kafkaProperties;
 
-    @PostConstruct
-    public void init() {
+    private KafkaStreams streams;
+
+    public void start(String fileName) {
         Properties props = new Properties();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, kafkaProperties.getApplicationId());
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
-
-//        taskExecutor.execute(() -> {
-//            while (true) {
-//
-//            }
-//        });
 
         StreamsBuilder builder = new StreamsBuilder();
         KStream<String, Key> originalStream = builder.stream("bad-git", Consumed.with(Serdes.String(), new KeyKafkaSerde()));
@@ -76,10 +70,14 @@ public class KeyStreamProcessor {
 //                .count(Materialized.<String, Key, KeyValueStore<Bytes, byte[]>>as("counts-store"));
 //        wordCounts.toStream().to("WordsWithCountsTopic", Produced.with(Serdes.String(), Serdes.Long()));
 
-        KafkaStreams streams = new KafkaStreams(builder.build(), props);
+        streams = new KafkaStreams(builder.build(), props);
         streams.cleanUp();
         streams.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(streams::close));
+    }
+
+    public void destroy() {
+        streams.close();
     }
 }

@@ -2,6 +2,7 @@ package co.axelrod.kafka.editor;
 
 import co.axelrod.kafka.editor.editor.MainFrame;
 import co.axelrod.kafka.editor.editor.file.FileNameField;
+import co.axelrod.kafka.editor.editor.text.TextArea;
 import co.axelrod.kafka.editor.kafka.FileManager;
 import co.axelrod.kafka.editor.kafka.KeyConsumer;
 import co.axelrod.kafka.editor.kafka.KeyProducer;
@@ -37,20 +38,30 @@ public class TextEditor {
     @Autowired
     private FileNameField fileNameField;
 
+    @Autowired
+    private TextArea textArea;
+
     @PostConstruct
     public void init() {
         this.fileName = DEFAULT_FILE_NAME;
-        mainFrame.updateTitle(fileName);
-        keyConsumer.start(fileName);
-        fileNameField.setText(fileName);
+        newFile();
     }
 
     public void changeFileName() {
         keyConsumer.destroy();
+        keyStreamProcessor.destroy();
         this.fileName = fileNameField.getText();
+        newFile();
+    }
+
+    private void newFile() {
+        fileNameField.setText(fileName);
         mainFrame.updateTitle(fileName);
         fileManager.createFile(fileName);
+
         keyConsumer.start(fileName);
+        keyStreamProcessor.start(fileName);
+        replay();
     }
 
     public void type(Key key) {
