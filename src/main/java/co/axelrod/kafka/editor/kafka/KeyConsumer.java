@@ -10,7 +10,6 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -32,14 +31,11 @@ public class KeyConsumer implements DisposableBean {
 
     private Queue<ConsumerRecord<String, Key>> consumedRecords = new LinkedBlockingQueue<>();
 
-    @Autowired
-    private KafkaProperties kafkaProperties;
-
     private ConsumerTask consumerTask;
 
     private Thread consumerThread;
 
-    public KeyConsumer() {
+    public KeyConsumer(KafkaProperties kafkaProperties) {
         properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
         properties.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
         properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
@@ -50,6 +46,8 @@ public class KeyConsumer implements DisposableBean {
     }
 
     public void start(String fileName) {
+        properties.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
+
         consumer = new KafkaConsumer<>(properties);
         consumer.subscribe(Arrays.asList(fileName));
 
@@ -72,10 +70,7 @@ public class KeyConsumer implements DisposableBean {
                     consumedRecords.add(record);
                 }
             }
-            log.info("Consumer thread is ending");
-            log.info("Committing consumer offset");
             consumer.commitSync();
-            log.info("Closing consumer");
             consumer.close();
         }
 

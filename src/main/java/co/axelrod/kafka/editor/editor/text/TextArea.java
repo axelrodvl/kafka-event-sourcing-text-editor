@@ -28,6 +28,7 @@ public class TextArea extends JTextArea {
 
             @Override
             public void keyReleased(KeyEvent e) {
+                // TODO Process left/right keys
                 // Doing nothing
             }
         });

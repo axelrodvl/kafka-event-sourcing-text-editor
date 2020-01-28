@@ -15,7 +15,6 @@ public class ChangeFileButton extends JButton {
         this.addActionListener(e -> {
             textEditor.changeFileName();
             textArea.setText("");
-            textArea.requestFocusInWindow();
         });
     }
 }
