@@ -16,9 +16,11 @@ public class TypingArea extends JTextField {
             public void keyTyped(KeyEvent e) {
                 textEditor.type(new Key(e));
             }
+
             public void keyPressed(KeyEvent e) {
                 // Doing nothing
             }
+
             public void keyReleased(KeyEvent e) {
                 // Doing nothing
             }

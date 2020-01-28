@@ -1,23 +1,13 @@
 package co.axelrod.kafka.editor.editor;
 
-import co.axelrod.kafka.editor.kafka.KeyConsumer;
-import co.axelrod.kafka.editor.kafka.KeyProducer;
-import co.axelrod.kafka.editor.model.Key;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 
 @Component
 @Slf4j

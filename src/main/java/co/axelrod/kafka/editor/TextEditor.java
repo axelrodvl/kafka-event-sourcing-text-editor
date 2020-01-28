@@ -1,15 +1,12 @@
 package co.axelrod.kafka.editor;
 
-import co.axelrod.kafka.editor.editor.TextAreaUpdater;
+import co.axelrod.kafka.editor.editor.TextEditorWindow;
 import co.axelrod.kafka.editor.kafka.FileManager;
 import co.axelrod.kafka.editor.kafka.KeyConsumer;
 import co.axelrod.kafka.editor.kafka.KeyProducer;
 import co.axelrod.kafka.editor.kafka.KeyStreamProcessor;
 import co.axelrod.kafka.editor.model.Key;
-import co.axelrod.kafka.editor.editor.TextEditorWindow;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;

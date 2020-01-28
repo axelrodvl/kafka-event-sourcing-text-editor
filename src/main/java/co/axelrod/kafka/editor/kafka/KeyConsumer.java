@@ -10,9 +10,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -67,7 +65,7 @@ public class KeyConsumer implements DisposableBean {
                 records = consumer.poll(Duration.ofMillis(Integer.MAX_VALUE));
                 for (ConsumerRecord<String, Key> record : records) {
                     consumedRecords.add(record);
-                    if(!running) {
+                    if (!running) {
                         break;
                     }
                     Thread.yield();
