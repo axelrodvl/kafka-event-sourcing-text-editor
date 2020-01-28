@@ -1,6 +1,5 @@
 package co.axelrod.kafka.editor.kafka;
 
-import co.axelrod.kafka.editor.model.Context;
 import co.axelrod.kafka.editor.model.Key;
 import co.axelrod.kafka.editor.model.serdes.KeyKafkaDeserializer;
 import lombok.Getter;
@@ -14,7 +13,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -22,15 +20,13 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.UUID;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @Component
-@Scope("prototype")
 @Slf4j
-public class KeyConsumer implements InitializingBean, DisposableBean {
+public class KeyConsumer implements DisposableBean {
     private KafkaConsumer<String, Key> consumer;
 
     @Getter
@@ -41,18 +37,11 @@ public class KeyConsumer implements InitializingBean, DisposableBean {
     @Autowired
     private KafkaProperties kafkaProperties;
 
-    private Context context;
-
     private ConsumerTask consumerTask;
 
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-    public KeyConsumer(Context context) {
-        this.context = context;
-    }
-
-    @Override
-    public void afterPropertiesSet() {
+    public void start(String fileName) {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.getBootstrapServers());
         props.put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString());
@@ -62,7 +51,7 @@ public class KeyConsumer implements InitializingBean, DisposableBean {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KeyKafkaDeserializer.class.getName());
 
         consumer = new KafkaConsumer<>(props);
-        consumer.subscribe(Arrays.asList(context.getFileName()));
+        consumer.subscribe(Arrays.asList(fileName));
 
         consumerTask = new ConsumerTask();
 
