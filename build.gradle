@@ -6,7 +6,7 @@ plugins {
 
 group = 'co.axelrod.kafka'
 version = '0.0.1'
-sourceCompatibility = '11'
+sourceCompatibility = '1.8'
 
 configurations {
 	compileOnly {

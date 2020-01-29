@@ -31,7 +31,7 @@ public class KeyProducer implements InitializingBean, DisposableBean {
     }
 
     public void send(String fileName, Key key) {
-        producer.send(new ProducerRecord<>(fileName, "key", key));
+        producer.send(new ProducerRecord<>(fileName, "new-key", key));
     }
 
     @Override

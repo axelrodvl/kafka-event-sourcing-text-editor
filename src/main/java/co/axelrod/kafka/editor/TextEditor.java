@@ -15,7 +15,7 @@ import javax.annotation.PostConstruct;
 
 @Component
 public class TextEditor {
-    private static final String DEFAULT_FILE_NAME = "bad-git";
+    private static final String DEFAULT_FILE_NAME = "file8";
 
     // We store file in Kafka topic
     private String fileName;
@@ -38,21 +38,18 @@ public class TextEditor {
     @Autowired
     private FileNameField fileNameField;
 
-    @Autowired
-    private TextArea textArea;
-
     @PostConstruct
     public void init() {
         this.fileName = DEFAULT_FILE_NAME;
-        newFile();
+        loadFile();
     }
 
     public void changeFileName() {
         this.fileName = fileNameField.getText();
-        newFile();
+        loadFile();
     }
 
-    public void newFile() {
+    public void loadFile() {
         keyConsumer.destroy();
         keyStreamProcessor.destroy();
 
