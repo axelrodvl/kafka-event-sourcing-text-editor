@@ -45,42 +45,37 @@ public class KeyStreamProcessor {
         fileManager.createFile(fileName + LETTERS_COUNT_POSTFIX);
 
         StreamsBuilder builder = new StreamsBuilder();
-/*        KStream<String, Key> originalStream = */builder.stream(fileName, Consumed.with(Serdes.String(), new KeyKafkaSerde()))
-                .peek((key, value) -> log.info("[Raw stream] Key:" + key + ", value: " + value.getKeyChar()))
-                .mapValues((key) -> String.valueOf(key.getKeyChar()))
-                .peek((key, value) -> log.info("[After mapping to chars] Key:" + key + ", value: " + value.toString()))
-                .groupByKey()
-                .count()
-                .toStream()
-                .peek((key, value) -> log.info("[Counting] Key:" + key + ", value: " + value.toString()))
-                .to(fileName + LETTERS_COUNT_POSTFIX, Produced.with(Serdes.String(), Serdes.Long()));
-
-
-//        KStream<String, String> letterStream = originalStream.mapValues((key) -> String.valueOf(key.getKeyChar()));
-//        letterStream.to(fileName + LETTERS_POSTFIX, Produced.with(Serdes.String(), Serdes.String()));
+        KStream<String, Key> originalStream = builder.stream(fileName, Consumed.with(Serdes.String(), new KeyKafkaSerde()));
+        KStream<String, String> letterStream = originalStream.mapValues((key) -> String.valueOf(key.getKeyChar()));
+        letterStream.to(fileName + LETTERS_POSTFIX, Produced.with(Serdes.String(), Serdes.String()));
 
         // Counting letters
-//        builder.stream(fileName + LETTERS_POSTFIX, Consumed.with(Serdes.String(), Serdes.String()))
-//                .groupByKey()
-//                .aggregate(new Initializer<Long>() {
-//                    @Override
-//                    public Long apply() {
-//                        return 0L;
-//                    }
-//                }, new Aggregator<String, String, Long>() {
-//                    @Override
-//                    public Long apply(String key, String value, Long aggregate) {
-//                        return aggregate++;
-//                    }
-//                }, Materialized.with(Serdes.String(), Serdes.Long()))
-//                .toStream().to(fileName + LETTERS_COUNT_POSTFIX, Produced.with(Serdes.String(), Serdes.Long()));
+        builder.stream(fileName + LETTERS_POSTFIX, Consumed.with(Serdes.String(), Serdes.String()))
+                .peek((key, value) -> log.info("[Raw stream] Key:" + key + ", value: " + value))
+                .groupByKey()
+                .aggregate(new Initializer<Long>() {
+                    @Override
+                    public Long apply() {
+                        return 0L;
+                    }
+                }, new Aggregator<String, String, Long>() {
+                    @Override
+                    public Long apply(String key, String value, Long aggregate) {
+                        return aggregate + 1;
+                    }
+                }, Materialized.with(Serdes.String(), Serdes.Long()))
+                .toStream().to(fileName + LETTERS_COUNT_POSTFIX, Produced.with(Serdes.String(), Serdes.Long()));
 
-//        builder.stream(fileName + LETTERS_POSTFIX, Consumed.with(Serdes.String(), Serdes.String()))
+//        StreamsBuilder builder = new StreamsBuilder();
+//        /*        KStream<String, Key> originalStream = */builder.stream(fileName, Consumed.with(Serdes.String(), new KeyKafkaSerde()))
+//                .peek((key, value) -> log.info("[Raw stream] Key:" + key + ", value: " + value.getKeyChar()))
+//                .mapValues((key) -> String.valueOf(key.getKeyChar()))
+//                .peek((key, value) -> log.info("[After mapping to chars] Key:" + key + ", value: " + value.toString()))
 //                .groupByKey()
-//                //.count(Materialized.with(Serdes.String(), Serdes.Long()))
 //                .count()
-//                .toStream().peek((key, value) -> log.info(value.toString())).to(fileName + LETTERS_COUNT_POSTFIX, Produced.with(Serdes.String(), Serdes.Long()));
-
+//                .toStream()
+//                .peek((key, value) -> log.info("[Counting] Key:" + key + ", value: " + value.toString()))
+//                .to(fileName + LETTERS_COUNT_POSTFIX, Produced.with(Serdes.String(), Serdes.Long()));
 
         // Streaming words
 //        builder.stream(fileName + LETTERS_POSTFIX, Consumed.with(Serdes.String(), Serdes.String()))

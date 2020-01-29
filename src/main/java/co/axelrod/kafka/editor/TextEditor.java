@@ -15,7 +15,7 @@ import javax.annotation.PostConstruct;
 
 @Component
 public class TextEditor {
-    private static final String DEFAULT_FILE_NAME = "file8";
+    private static final String DEFAULT_FILE_NAME = "file10";
 
     // We store file in Kafka topic
     private String fileName;
