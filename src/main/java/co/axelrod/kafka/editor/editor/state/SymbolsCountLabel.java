@@ -17,6 +17,6 @@ public class SymbolsCountLabel extends JLabel {
             while (true) {
                 setText(LABEL + keyStreamProcessor.getKeyCount());
             }
-        });
+        }).start();
     }
 }
