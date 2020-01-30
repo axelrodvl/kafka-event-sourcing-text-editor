@@ -1,9 +1,8 @@
-package co.axelrod.kafka.editor.editor;
+package co.axelrod.kafka.editor.ui;
 
-import co.axelrod.kafka.editor.editor.text.TextScrollPane;
+import co.axelrod.kafka.editor.ui.text.TextScrollPane;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -15,22 +14,23 @@ import java.awt.*;
 @Slf4j
 public class MainFrame extends JFrame implements InitializingBean {
     @Value("${spring.application.name}")
-    private String title;
+    private String titlePrefix;
 
-    @Autowired
-    private TextScrollPane textScrollPane;
+    private final TextScrollPane textScrollPane;
+    private final JPanel fileChangePanel;
+    private final JPanel controlPanel;
+    private final JPanel statePanel;
 
-    @Autowired
-    @Qualifier("fileChange")
-    private JPanel fileChangePanel;
-
-    @Autowired
-    @Qualifier("control")
-    private JPanel controlPanel;
-
-    @Autowired
-    @Qualifier("state")
-    private JPanel statePanel;
+    public MainFrame(TextScrollPane textScrollPane,
+                     @Qualifier("fileChange") JPanel fileChangePanel,
+                     @Qualifier("control") JPanel controlPanel,
+                     @Qualifier("state") JPanel statePanel
+    ) {
+        this.textScrollPane = textScrollPane;
+        this.fileChangePanel = fileChangePanel;
+        this.controlPanel = controlPanel;
+        this.statePanel = statePanel;
+    }
 
     /**
      * Create the GUI and show it.  For thread safety,
@@ -38,7 +38,7 @@ public class MainFrame extends JFrame implements InitializingBean {
      * event-dispatching thread.
      */
     private void createAndShowGUI() {
-        this.setTitle(title);
+        this.setTitle(titlePrefix);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.addComponentsToPane();
         this.pack();
@@ -62,10 +62,10 @@ public class MainFrame extends JFrame implements InitializingBean {
     public void afterPropertiesSet() throws Exception {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         UIManager.put("swing.boldMetal", Boolean.FALSE);
-        javax.swing.SwingUtilities.invokeLater(() -> createAndShowGUI());
+        SwingUtilities.invokeLater(this::createAndShowGUI);
     }
 
     public void updateTitle(String newTitle) {
-        this.setTitle(title + " - " + newTitle);
+        this.setTitle(titlePrefix + " - " + newTitle);
     }
 }

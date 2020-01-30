@@ -1,4 +1,4 @@
-package co.axelrod.kafka.editor.editor.control;
+package co.axelrod.kafka.editor.ui.control;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,6 @@ public class ControlPanel extends JPanel {
         FlowLayout borderLayout = new FlowLayout();
         borderLayout.setAlignment(FlowLayout.TRAILING);
         this.setLayout(borderLayout);
-        //this.add(symbols);
         this.add(undoButton);
         this.add(redoButton);
         this.add(replayButton);

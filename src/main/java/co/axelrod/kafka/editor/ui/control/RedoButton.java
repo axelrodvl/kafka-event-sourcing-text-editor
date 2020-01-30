@@ -1,4 +1,4 @@
-package co.axelrod.kafka.editor.editor.control;
+package co.axelrod.kafka.editor.ui.control;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;

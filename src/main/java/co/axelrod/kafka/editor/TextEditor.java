@@ -1,46 +1,31 @@
 package co.axelrod.kafka.editor;
 
-import co.axelrod.kafka.editor.editor.MainFrame;
-import co.axelrod.kafka.editor.editor.file.FileNameField;
-import co.axelrod.kafka.editor.editor.text.TextArea;
 import co.axelrod.kafka.editor.kafka.FileManager;
 import co.axelrod.kafka.editor.kafka.KeyConsumer;
 import co.axelrod.kafka.editor.kafka.KeyProducer;
 import co.axelrod.kafka.editor.kafka.KeyStreamProcessor;
 import co.axelrod.kafka.editor.model.Key;
-import org.springframework.beans.factory.annotation.Autowired;
+import co.axelrod.kafka.editor.ui.file.FileNameField;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
 @Component
+@RequiredArgsConstructor
 public class TextEditor {
-    private static final String DEFAULT_FILE_NAME = "test.txt";
+    private static final String DEFAULT_FILE_NAME = "wow3.txt";
 
-    // We store file in Kafka topic
-    private String fileName;
+    private String fileName = DEFAULT_FILE_NAME;
 
-    @Autowired
-    private MainFrame mainFrame;
-
-    @Autowired
-    private KeyConsumer keyConsumer;
-
-    @Autowired
-    private KeyProducer keyProducer;
-
-    @Autowired
-    private KeyStreamProcessor keyStreamProcessor;
-
-    @Autowired
-    private FileManager fileManager;
-
-    @Autowired
-    private FileNameField fileNameField;
+    private final KeyConsumer keyConsumer;
+    private final KeyProducer keyProducer;
+    private final KeyStreamProcessor keyStreamProcessor;
+    private final FileManager fileManager;
+    private final FileNameField fileNameField;
 
     @PostConstruct
     public void init() {
-        this.fileName = DEFAULT_FILE_NAME;
         loadFile();
     }
 
@@ -54,7 +39,6 @@ public class TextEditor {
         keyStreamProcessor.destroy();
 
         fileNameField.setText(fileName);
-        mainFrame.updateTitle(fileName);
         fileManager.createFile(fileName);
 
         keyConsumer.start(fileName);

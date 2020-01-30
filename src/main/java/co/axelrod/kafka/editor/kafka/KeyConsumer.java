@@ -2,21 +2,16 @@ package co.axelrod.kafka.editor.kafka;
 
 import co.axelrod.kafka.editor.model.Key;
 import co.axelrod.kafka.editor.model.serdes.KeyKafkaDeserializer;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Properties;
-import java.util.Queue;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @Component
@@ -25,14 +20,9 @@ public class KeyConsumer implements DisposableBean {
     private final Properties properties = new Properties();
 
     private KafkaConsumer<String, Key> consumer;
-
-    @Getter
-    private ConsumerRecords<String, Key> records;
-
-    private Queue<ConsumerRecord<String, Key>> consumedRecords = new LinkedBlockingQueue<>();
+    private final Queue<ConsumerRecord<String, Key>> consumedRecords = new LinkedBlockingQueue<>();
 
     private ConsumerTask consumerTask;
-
     private Thread consumerThread;
 
     public KeyConsumer(KafkaProperties kafkaProperties) {
@@ -62,41 +52,30 @@ public class KeyConsumer implements DisposableBean {
         @Override
         public void run() {
             while (running) {
-                records = consumer.poll(Duration.ofMillis(100));
-                for (ConsumerRecord<String, Key> record : records) {
-                    if (!running) {
-                        break;
-                    }
-                    consumedRecords.add(record);
-                }
+                consumer.poll(Duration.ofMillis(100)).forEach(consumedRecords::add);
             }
             consumer.commitSync();
             consumer.close();
         }
 
-        public void terminate() {
+        public void destroy() {
             running = false;
         }
     }
 
-    public Key getNextSymbol() {
-        if (!consumedRecords.isEmpty()) {
-            ConsumerRecord<String, Key> record = consumedRecords.remove();
-            return record.value();
-        } else {
-            return null;
-        }
+    public Optional<Key> getNextSymbol() {
+        return Optional.of(consumedRecords.remove().value());
     }
 
     @Override
     public void destroy() {
         if (consumerTask != null) {
-            consumerTask.terminate();
+            consumerTask.destroy();
             try {
                 consumerThread.join();
             } catch (InterruptedException e) {
-                log.error("Consumer thread interrupted");
-                e.printStackTrace();
+                log.error(e.getMessage());
+                Thread.currentThread().interrupt();
             }
             consumedRecords.clear();
         }

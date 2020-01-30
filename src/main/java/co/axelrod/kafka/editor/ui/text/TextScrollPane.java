@@ -1,4 +1,4 @@
-package co.axelrod.kafka.editor.editor.text;
+package co.axelrod.kafka.editor.ui.text;
 
 import org.springframework.stereotype.Component;
 
