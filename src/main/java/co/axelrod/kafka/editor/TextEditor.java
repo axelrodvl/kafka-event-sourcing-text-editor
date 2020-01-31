@@ -14,7 +14,7 @@ import javax.annotation.PostConstruct;
 @Component
 @RequiredArgsConstructor
 public class TextEditor {
-    private static final String DEFAULT_FILE_NAME = "wow3.txt";
+    private static final String DEFAULT_FILE_NAME = "t5";
 
     private String fileName = DEFAULT_FILE_NAME;
 

@@ -1,6 +1,7 @@
 package co.axelrod.kafka.editor.ui.text;
 
 import co.axelrod.kafka.editor.kafka.KeyConsumer;
+import co.axelrod.kafka.editor.model.Key;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.stereotype.Component;
 
@@ -20,11 +21,15 @@ public class TextAreaUpdater implements Runnable, DisposableBean {
     @Override
     public void run() {
         while (running) {
-            keyConsumer.getNextSymbol().ifPresent(key -> {
-                if (!textArea.isFocusOwner()) {
-                    textArea.display(String.valueOf(key.getKeyChar()));
-                }
-            });
+            Key key = keyConsumer.getNextSymbol();
+
+            if (key == null) {
+                continue;
+            }
+
+            if (!textArea.isFocusOwner()) {
+                textArea.display(String.valueOf(key.getKeyChar()));
+            }
         }
     }
 

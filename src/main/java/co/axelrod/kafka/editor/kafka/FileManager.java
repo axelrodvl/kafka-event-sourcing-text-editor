@@ -6,7 +6,7 @@ import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Properties;
 
 @Component
@@ -21,7 +21,7 @@ public class FileManager {
         try (AdminClient admin = AdminClient.create(properties)) {
             int partitions = 1;
             short replication = 1;
-            admin.createTopics(Arrays.asList(new NewTopic(fileName, partitions, replication)));
+            admin.createTopics(Collections.singletonList(new NewTopic(fileName, partitions, replication)));
         }
     }
 }

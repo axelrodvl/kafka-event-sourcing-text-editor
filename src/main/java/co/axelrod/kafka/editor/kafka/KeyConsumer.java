@@ -11,7 +11,10 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Properties;
+import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @Component
@@ -63,8 +66,13 @@ public class KeyConsumer implements DisposableBean {
         }
     }
 
-    public Optional<Key> getNextSymbol() {
-        return Optional.of(consumedRecords.remove().value());
+    public Key getNextSymbol() {
+        if (!consumedRecords.isEmpty()) {
+            ConsumerRecord<String, Key> record = consumedRecords.remove();
+            return record.value();
+        } else {
+            return null;
+        }
     }
 
     @Override
